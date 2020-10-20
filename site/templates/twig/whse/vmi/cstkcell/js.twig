@@ -1,0 +1,242 @@
+$(function() {
+	var modal_ajax = $('#ajax-modal');
+	var form = $('#vmi-form');
+	var input_custID = form.find('input[name=custID]');
+	var input_shiptoID = form.find('input[name=shiptoID]');
+	var input_cell = form.find('input[name=cell]');
+
+
+/* =============================================================
+	Lookup Modal Functions
+============================================================= */
+	$("body").on('change', 'input[name=custID]', function(e) {
+		e.preventDefault();
+		var input = $(this);
+		var custID = input.val();
+		is_valid_custid(custID, function(valid) {
+			if (valid) {
+				get_customer(custID, function(customer) {
+					form.find('.customer-name').text(customer.name);
+				});
+			}
+		});
+	});
+
+	$("body").on('change', 'input[name=shiptoID]', function(e) {
+		e.preventDefault();
+		var input = $(this);
+		var shiptoID = input.val();
+		var custID = input_custID.val();
+		is_valid_shiptoid(custID, shiptoID, function(valid) {
+			if (valid) {
+				get_shipto(custID, shiptoID, function(shipto) {
+					var address = form.find('.customer-address');
+					address.find('.address').text(shipto.address);
+					address.find('.address2').text(shipto.address2);
+					address.find('.city').text(shipto.city);
+					address.find('.state').text(shipto.state);
+					address.find('.zip').text(shipto.zip);
+					address.addClass('show');
+				});
+			}
+		});
+	});
+
+/* =============================================================
+	Lookup Modal Functions
+============================================================= */
+	modal_ajax.on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var modal = $(this);
+		var url = '{{ page.search_customersURL }}';
+
+		if (button.data('search') == 'customer') {
+			url = '{{ page.search_customersURL }}';
+		} else if (button.data('search') == 'shipto') {
+			uri = new URI('{{ page.search_shiptosURL }}');
+			uri.addQuery('custID', input_custID.val());
+			url = uri.toString();
+		} else if (button.data('search') == 'cell') {
+			url = '{{ page.search_cellsURL }}';
+		} else if (button.data('search') == 'ordered') {
+			url = '{{ page.orderedURL }}';
+		}
+
+		modal.find('.modal-title').text(button.attr('title'));
+		modal.resizeModal('xl');
+		modal.find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '.customer-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var custID = button.data('custid');
+		var name = button.data('name');
+		input_custID.val(custID);
+		form.find('.customer-name').text(name);
+		modal_ajax.modal('hide');
+	});
+
+	$("body").on('click', '.shipto-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var shiptoID = button.data('shiptoid');
+		var description = button.find('.description').text();
+		input_shiptoID.val(shiptoID);
+		var row = button.closest('.shipto-row');
+		var address = form.find('.customer-address');
+		address.find('.address').text(row.find('.address').text());
+		address.find('.address2').text(row.find('.address2').text());
+		address.find('.city').text(row.find('.city').text());
+		address.find('.state').text(row.find('.state').text());
+		address.find('.zip').text(row.find('.zip').text());
+		address.addClass('show');
+		modal_ajax.modal('hide');
+	});
+
+	$("body").on('click', '.cell-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var id = button.data('id');
+		var description = button.data('description');
+		input_cell.val(id);
+		modal_ajax.modal('hide');
+	});
+
+	$("body").on('submit', '#ajax-modal form', function(e) {
+		e.preventDefault();
+		var form = $(this);
+		var query = form.serialize();
+		var action = form.attr('action');
+		var search = form.find('input[name=q]').val();
+		var url = action + '?' + query;
+		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
+		form.closest('.modal').find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
+		e.preventDefault();
+		var href = $(this).attr('href');
+		modal_ajax.find('.modal-body').load(href);
+	});
+
+/* =============================================================
+	Validation Functions
+============================================================= */
+	var validator = form.validate({
+		errorClass: "is-invalid",
+		validClass: "is-valid",
+		errorPlacement: function(error, element) {
+			error.insertAfter(element).addClass('invalid-feedback');
+		},
+		rules: {
+			custID: {
+				required: true,
+				remote: {
+					url: '{{ page.validateURL }}',
+					type: "get",
+					data: { validate: 'custid'}
+				}
+			},
+			shiptoID: {
+				required: true,
+				remote: {
+					url: '{{ page.validateURL }}',
+					type: "get",
+					data: {
+						validate: 'shiptoid',
+						custID: function() {
+							return $('#custID').val();
+						}
+					}
+				}
+			},
+			cell: {
+				required: true,
+				remote: {
+					url: '{{ page.validateURL }}',
+					type: "get",
+					data: { validate: 'cell'}
+				}
+			},
+		},
+		messages: {
+			custID: "Use a valid Cust ID",
+		},
+		submitHandler: function(form) {
+			var uri = new URI('{{ page.validateURL }}');
+			uri.addQuery('validate', 'cstkcell');
+			uri.addQuery('custID', input_custID.val());
+			uri.addQuery('shiptoID', input_shiptoID.val());
+			uri.addQuery('cell', input_cell.val());
+
+			$.getJSON(uri.toString(), function(response) {
+				if (typeof response == 'boolean' && response === true) {
+					form.submit();
+				} else {
+					var cellkey = input_custID.val() + '-' + input_shiptoID.val() + '-' +input_cell.val();
+					swal2.fire({
+						icon: 'error',
+						title: 'Invalid CSTK Cell',
+						text:  'CSTK cell "'+cellkey+'" does not exist'
+					});
+				}
+			});
+		}
+	});
+
+/* =============================================================
+	AJAX Functions
+============================================================= */
+	function is_valid_custid(custID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.validateURL }}');
+		uri.query('');
+		uri.addQuery('validate', 'custid');
+		uri.addQuery('custID', input_custID.val());
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			var valid = typeof response == 'boolean' && response === true;
+			callback(valid);
+		});
+	}
+
+	function get_customer(custID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.jsonURL }}');
+		uri.query('');
+		uri.addQuery('get', 'customer');
+		uri.addQuery('custID', custID);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			callback(response);
+		});
+	}
+
+	function is_valid_shiptoid(custID, shiptoID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.validateURL }}');
+		uri.query('');
+		uri.addQuery('validate', 'shiptoid');
+		uri.addQuery('custID', custID);
+		uri.addQuery('shiptoID', shiptoID);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			var valid = typeof response == 'boolean' && response === true;
+			callback(valid);
+		});
+	}
+
+	function get_shipto(custID, shiptoID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.jsonURL }}');
+		uri.query('');
+		uri.addQuery('get', 'shipto');
+		uri.addQuery('custID', custID);
+		uri.addQuery('shiptoID', shiptoID);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			callback(response);
+		});
+	}
+});

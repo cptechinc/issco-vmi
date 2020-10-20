@@ -1,0 +1,184 @@
+<?php namespace ProcessWire;
+/**
+ * class Dpages
+ *
+ * Installs fields, templates, pages, hooks necessary for Top Menus
+ * NOTE: Also installs the basic fields, templates, to build the rest of the Application
+ */
+class Dpages extends DplusPwPages implements Module {
+	const FIELDS = array(
+		'dplus_function' => array(
+			'name'  => 'dplus_function',
+			'type'  => 'text',
+			'label' => 'Dplus Function'
+		),
+		'pw_template' => array(
+			'name'  => 'pw_template',
+			'type'  => 'text',
+			'label' => 'ProcessWire Template'
+		),
+		'dplus_permission' => array(
+			'name'  => 'dplus_permission',
+			'type'  => 'text',
+			'label' => 'Dplus Permission'
+		),
+	);
+
+	const TEMPLATES = array(
+		'login' => array(
+			'name'   => 'login',
+			'fields' => array()
+		),
+		'whse-cstk-order' => array(
+			'name'   => 'whse-cstk-order',
+			'fields' => array()
+		),
+		'vmi-validate' => array(
+			'name'   => 'vmi-validate',
+			'fields' => array()
+		),
+	);
+
+	const PAGES = array(
+		'login' => array(
+			'template' => 'login',
+			'name'     => 'login',
+			'title'    => 'Login',
+			'summary'  => '',
+			'parent'   => '/'
+		),
+		'cstk-order' => array(
+			'template' => 'warehouse-function',
+			'name'     => 'whse-order',
+			'title'    => 'CSTK Order',
+			'summary'  => '',
+			'parent'   => '/',
+			'pw_template' => 'whse-cstk-order',
+			'dplus_function' => '',
+			'dplus_permission' => ''
+		),
+		'vmi-validate' => array(
+			'template' => 'dplus-json',
+			'name'     => 'validate',
+			'title'    => 'Validate',
+			'summary'  => '',
+			'parent'   => '/whse-order/',
+			'pw_template' => 'whse-vmi-validate',
+			'dplus_function' => '',
+			'dplus_permission' => ''
+		),
+		'vmi-json' => array(
+			'template' => 'dplus-json',
+			'name'     => 'json',
+			'title'    => 'JSON',
+			'summary'  => '',
+			'parent'   => '/whse-order/',
+			'pw_template' => 'whse-vmi-json',
+			'dplus_function' => '',
+			'dplus_permission' => ''
+		),
+		'vmi-ordered' => array(
+			'template' => 'warehouse-function',
+			'name'     => 'ordered',
+			'title'    => 'Ordered',
+			'summary'  => 'View Ordered CSTK Items',
+			'parent'   => '/whse-order/',
+			'pw_template' => 'whse-vmi-ordered',
+			'dplus_function' => '',
+			'dplus_permission' => ''
+		),
+	);
+
+	/**
+	 * Returns a PageArray of Pages under index that the user has access to
+	 * @param  User   $user User
+	 * @return PageArray
+	 */
+	public function get_user_allowed_menus(User $user) {
+		$p = $this->wire('pages')->get('template=home');
+
+		if ($user->hasRole('whse') || $user->hasRole('whsemgr')) {
+			$dplus_functions = array_unique($p->children('template=dplus-menu|warehouse-menu|menu')->explode('dplus_function'));
+		} else {
+			$dplus_functions = array_unique($p->children('template=dplus-menu|menu')->explode('dplus_function'));
+		}
+
+		$filtered_functions = $user->filter_functions($dplus_functions);
+		return $p->children('template=dplus-menu|warehouse-menu|menu, dplus_function='.implode('|', $filtered_functions));
+	}
+
+	/**
+	 * Returns PageArray of children Pages under $page that the user has access to
+	 * @param  Page   $page Page to return children of
+	 * @param  User   $user User
+	 * @return PageArray
+	 */
+	public function get_user_allowed_subpages(Page $page, User $user) {
+		$dplus_functions = array_unique($page->children('template!=redir')->explode('dplus_function'));
+		$filtered_functions = $user->filter_functions($dplus_functions);
+		return $page->children('template!=redir, dplus_function='.implode('|', $filtered_functions));
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public function init() {
+		// $this->addHook('Pages::user_allowed_menus', function($event) {
+		// 	$user = $this->wire('user');
+		// 	$event->return = $this->get_user_allowed_menus($user);
+		// });
+		//
+		// $this->addHook('Page(template=dplus-menu)::user_allowed_subpages', function($event) {
+		// 	$page = $event->object;
+		// 	$user = $this->wire('user');
+		// 	$event->return = $this->get_user_allowed_subpages($page, $user);
+		// });
+	}
+
+	/**
+	 * ProcessWire Module Info
+	 *
+	 * @return void
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Issco Warehouse Modules',
+			'version' => 101,
+			'summary' => 'Installs and creates Issco Warehouse Pages',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('DplusPwPages'),
+			'installs' => array(
+			),
+		);
+	}
+
+	/**
+	 * ProcessWire Installer Function
+	 * NOTE: Runs when installed through ProcessWire
+	 * @return void
+	 */
+	public function ___install() {
+
+	}
+
+	/**
+	 * ProcessWire removal Function
+	 * NOTE: Runs when removed through ProcessWire
+	 * @return void
+	 */
+	public function ___uninstall() {
+
+	}
+
+	public function update() {
+		$info = self::getModuleInfo();
+		$modules = $this->wire('modules');
+
+		foreach ($info['installs'] as $module_name) {
+			$modules->install($module_name);
+		}
+
+		parent::update();
+	}
+}

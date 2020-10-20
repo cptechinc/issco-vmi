@@ -1,0 +1,116 @@
+<?php namespace ProcessWire;
+
+use Propel\Runtime\ActiveQuery\Criteria;
+
+use CstkItemQuery, CstkItem;
+
+/**
+ * ValidateItemVmi
+ * Validates Items for VMI
+ *
+ * @property string $exists  Item Exists
+ * @property string $itemID  Item ID associated with Item
+ * @property string $request What was sent to find Item
+ * @property string $source  cstk
+ * @property string $itemID  Customer Item ID associated with Item
+ */
+class ValidateItemVmi extends ValidateItem implements Module {
+	public function __construct() {
+		parent::__construct();
+		$this->custitemID = '';
+	}
+	/**
+	 * Return if CSTK Item Exists
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer SHip-to ID
+	 * @param  string $cell     Cell ID
+	 * @param  string $itemID   Item ID | Customer Item ID
+	 * @return bool
+	 */
+	public function cstk($custID, $shiptoID, $cell, $itemID) {
+		$this->cstk_itemid($custID, $shiptoID, $cell, $itemID);
+
+		if (!$this->exists) {
+			$this->cstk_custitemid($custID, $shiptoID, $cell, $itemID);
+		}
+		return $this->exists;
+	}
+
+	/**
+	 * Return if CSTK Item Matches by Item ID
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer SHip-to ID
+	 * @param  string $cell     Cell ID
+	 * @param  string $itemID   Item ID
+	 * @return bool
+	 */
+	public function cstk_itemid($custID, $shiptoID, $cell, $itemID) {
+		$q = $this->query_cstk($custID, $shiptoID, $cell);
+		$q->filterByItemid($itemID);
+
+		if ($q->count()) {
+			$cstkitem = $q->findOne();
+			$this->exists = true;
+			$this->itemID = $itemID;
+			$this->custitemID = $cstkitem->custitemid;
+			$this->source = 'cstk';
+			return $this->exists;
+		}
+	}
+
+	/**
+	 * Return if CSTK Item Matches by Customer Item ID
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer SHip-to ID
+	 * @param  string $cell     Cell ID
+	 * @param  string $itemID   Customer Item ID
+	 * @return bool
+	 */
+	public function cstk_custitemid($custID, $shiptoID, $cell, $itemID) {
+		$q = $this->query_cstk($custID, $shiptoID, $cell);
+		$q->filterByCustItemid($itemID);
+
+		if ($q->count()) {
+			$cstkitem = $q->findOne();
+			$this->exists = true;
+			$this->itemID = $cstkitem->itemid;
+			$this->custitemID = $cstkitem->custitemid;
+			$this->source = 'cstk';
+			return $this->exists;
+		}
+	}
+
+	/**
+	 * Return CSTK Item Query pre-filtered
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer SHip-to ID
+	 * @param  string $cell     Cell ID
+	 * @return CstkItemQuery
+	 */
+	private function query_cstk($custID = '', $shiptoID = '', $cell = '') {
+		$q = CstkItemQuery::create();
+		if ($custID) {$q->filterByCustid($custID);}
+		if ($shiptoID) {$q->filterByShiptoid($shiptoID);}
+		if ($cell) {$q->filterByCell($cell);}
+		return $q;
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	/**
+	 * ProcessWire Module Info
+	 *
+	 * @return void
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Item Validate Vmi Module',
+			'version' => 101,
+			'summary' => 'Handles Item Validation for VMI',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('ValidateItem')
+		);
+	}
+}

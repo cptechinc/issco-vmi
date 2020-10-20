@@ -1,0 +1,42 @@
+<?php namespace ProcessWire;
+
+class Dplusm extends WireData implements Module {
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Module',
+			'version' => 101,
+			'summary' => 'Module to Install Dplus based modules',
+			'singular' => true,
+			'autoload' => true,
+			'installs' => array(
+				'DplusUser',
+				'DplusDatabase', 'DplusOnlineDatabase',
+				'DplusRequest',
+				'DplusPwPages'
+			)
+		);
+	}
+
+	public function install() {
+		$info = self::getModuleInfo();
+		$modules = $this->wire('modules');
+		$modules->refresh();
+
+		foreach ($info['installs'] as $module_name) {
+			$modules->install($module_name);
+		}
+	}
+
+	public function update() {
+		$info = self::getModuleInfo();
+		$modules = $this->wire('modules');
+		$modules->refresh();
+
+		foreach ($info['installs'] as $module_name) {
+			$modules->install($module_name);
+		}
+	}
+}

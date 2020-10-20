@@ -1,0 +1,105 @@
+<?php namespace ProcessWire;
+
+use Purl\Url;
+
+/**
+ * class DpagesApi
+ *
+ * Installs fields, templates, pages, hooks necessary for Api Pages
+ * api Pages will provide api functionality to the site if not available through other means
+ */
+class DpagesApi extends Dpages implements Module {
+	const FIELDS = array();
+
+	const TEMPLATES = array(
+		'api-menu' => array(
+			'name'   => 'api-menu',
+			'fields' => array('dplus_function', 'summary'),
+			'paginated' => false
+		),
+		'api-json' => array(
+			'name'   => 'api-json',
+			'fields' => array('dplus_function', 'pw_template', 'summary'),
+			'paginated' => true
+		),
+		'api-ajax' => array(
+			'name'   => 'api-ajax',
+			'fields' => array('dplus_function', 'pw_template', 'summary'),
+			'paginated' => true
+		),
+	);
+
+	const PAGES = array(
+		'api' => array(
+			'template'       => 'api-menu',
+			'name'           => 'api',
+			'title'          => 'API Menu',
+			'summary'        => 'API Menu',
+			'parent'         => '/',
+			'dplus_function' => ''
+		),
+		'menu-lookup' => array(
+			'template'       => 'api-menu',
+			'name'           => 'lookup',
+			'title'          => 'API Lookup Menu',
+			'summary'        => 'API Lookup Menu',
+			'parent'         => '/api/',
+			'dplus_function' => ''
+		),
+		'menu-json' => array(
+			'template'       => 'api-menu',
+			'name'           => 'json',
+			'title'          => 'API JSON Menu',
+			'summary'        => 'API JSON Menu',
+			'parent'         => '/api/',
+			'dplus_function' => ''
+		),
+		'lookup-customer' => array(
+			'template'       => 'api-ajax',
+			'name'           => 'customers',
+			'title'          => 'Lookup Customers',
+			'summary'        => 'Lookup Customers',
+			'parent'         => '/api/lookup/',
+			'dplus_function' => '',
+			'pw_template'    => 'lookup-customer'
+		),
+		'lookup-customer-shipto' => array(
+			'template'       => 'api-ajax',
+			'name'           => 'ship-tos',
+			'title'          => 'Lookup Customer Ship-to',
+			'summary'        => 'Lookup Customers Ship-to',
+			'parent'         => '/api/lookup/customers/',
+			'dplus_function' => '',
+			'pw_template'    => 'lookup-customer-shipto'
+		),
+		'lookup-stocking-cells' => array(
+			'template'       => 'api-ajax',
+			'name'           => 'stocking-cells',
+			'title'          => 'Lookup Customer Stocking Cells',
+			'summary'        => 'Lookup Customers Stocking Cells',
+			'parent'         => '/api/lookup/',
+			'dplus_function' => '',
+			'pw_template'    => 'lookup-stocking-cells'
+		),
+		'lookup-cstk-items' => array(
+			'template'       => 'api-ajax',
+			'name'           => 'cstk-items',
+			'title'          => 'Lookup CSTK Items',
+			'summary'        => 'Lookup CSTK Items',
+			'parent'         => '/api/lookup/',
+			'dplus_function' => '',
+			'pw_template'    => 'lookup-cstk-items'
+		)
+	);
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Online API Pages',
+			'version' => 101,
+			'summary' => 'Installs and creates Dplus Online API Pages',
+			'singular' => true,
+			'autoload' => true,
+			'requires' => array('DplusPwPages', 'Dpages'),
+		);
+	}
+}

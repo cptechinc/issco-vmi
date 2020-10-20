@@ -1,0 +1,56 @@
+<?php namespace ProcessWire;
+
+use WhsesessionQuery, Whsesession;
+
+use WarehouseQuery, Warehouse;
+
+class WarehouseManagement extends WireData implements Module {
+
+public function whsesession($sessionID) {
+	return WhsesessionQuery::create()->findOneBySessionid($sessionID);
+}
+
+public function warehouse($id) {
+	return $this->query_warehouse()->findOneByWhseid($id);
+}
+
+public function warehouse_exists($id) {
+	$q = $this->query_warehouse();
+	$q->filterById($id);
+	return boolval($q->count());
+}
+
+public function query_warehouse() {
+	return WarehouseQuery::create();
+}
+
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public function update() {
+		$modules = $this->wire('modules');
+		$modules->refresh();
+		$moduleinfo = self::getModuleInfo();
+
+		foreach ($moduleinfo['installs'] as $sub) {
+			$modules->install($sub);
+		}
+	}
+
+	/**
+	 * ProcessWire Module Info
+	 *
+	 * @return void
+	 */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dpluso Warehouse Management',
+			'version' => 101,
+			'summary' => 'Handles Loading Warehouse Management Functions',
+			'singular' => true,
+			'autoload' => false,
+			'installs' => array()
+		);
+	}
+}

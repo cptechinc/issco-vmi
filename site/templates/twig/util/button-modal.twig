@@ -1,0 +1,12 @@
+{% set color = color ? color : 'dark' %}
+{% set disabled = disabled ? disabled : false %}
+{% set attributes_extra = attributes ? attributes|htmlattributes : '' %}
+{% set modaltarget = disabled ? '' : modaltarget %}
+{% set attributes_extra_button = attributes_button ? attributes_button|htmlattributes : '' %}
+{% set icon = icon ? icon : 'fa fa-search' %}
+{% set show_icon = show_icon ? show_icon : false %}
+{% set buttontext = buttontext ? buttontext : '' %}
+
+<button type="button" class="btn btn-{{ color }}" data-toggle="modal" data-target="{{ modaltarget }}" title="{{ modaldescription }}" aria-label="{{ modaldescription }}" {{ attributes_extra_button }}>
+	<i class="{{ icon }}" aria-hidden="true"></i> <span class="sr-only">{{ modaldescription }}</span> {{ buttontext ? buttontext : '' }}
+</button>

@@ -1,0 +1,13 @@
+<div class="breadcrumb-holder">
+	<div class="container-fluid">
+		<ul class="breadcrumb">
+			{% for parent in page.parents() %}
+				<li class="breadcrumb-item">
+					<a href="{{ parent.url }}">{{ parent.title }}</a>
+				</li>
+			{% endfor %}
+
+			<li class="breadcrumb-item active">{{ page.title }}</li>
+		</ul>
+	</div>
+</div>

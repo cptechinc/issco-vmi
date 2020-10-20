@@ -1,0 +1,276 @@
+$(function() {
+	var modal_ajax = $('#ajax-modal');
+	var form = $('#vmi-form');
+	var input_custID = form.find('input[name=custID]');
+	var input_shiptoID = form.find('input[name=shiptoID]');
+	var input_cell = form.find('input[name=cell]');
+	var input_itemID = form.find('input[name=itemID]');
+	var input_qty = form.find('input[name=qty]');
+
+/* =============================================================
+	Validation Functions
+============================================================= */
+	var validator = form.validate({
+		errorClass: "is-invalid",
+		validClass: "is-valid",
+		errorPlacement: function(error, element) {
+			error.insertAfter(element).addClass('invalid-feedback');
+		},
+		rules: {
+			itemID: {
+				required: true,
+				remote: {
+					url: '{{ page.validateURL }}',
+					type: "get",
+					data: { validate: 'itemid'}
+				}
+			},
+		},
+		messages: {
+			itemID: "Use a valid Item ID",
+		},
+		submitHandler: function(form) {
+			form.submit();
+		}
+	});
+
+/* =============================================================
+	Event Functions
+============================================================= */
+	$("body").on('change', 'input[name=itemID]', function(e) {
+		e.preventDefault();
+		var input = $(this);
+		var itemID = input.val();
+
+		is_valid_itemid(itemID, function(valid) {
+			if (valid) {
+				verify_ordered(itemID);
+			} else {
+				is_valid_custitemid(itemID, $('input[name=custID]').val(), function(itemID) {
+					if (itemID) {
+						input.val(itemID).change();
+						validator.element('#itemID');
+						verify_ordered(itemID);
+					}
+				});
+			}
+		});
+	});
+
+	$("body").on('change', 'input[name=cases]', function(e) {
+		e.preventDefault();
+		var input = $(this);
+		var cases = parseInt(input.val());
+		var qtypercase = parseInt(form.find('p#caseqty').text());
+
+		if (qtypercase > 0) {
+			var qty = cases * qtypercase;
+			input_qty.val(qty);
+		}
+	});
+
+/* =============================================================
+	Lookup Modal Functions
+============================================================= */
+	modal_ajax.on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget); // Button that triggered the modal
+		var modal = $(this);
+		var url = '{{ page.search_customersURL }}';
+
+		 if (button.data('search') == 'cstkitem') {
+			uri = new URI('{{ page.search_cstkitemsURL }}');
+			uri.addQuery('custID', input_custID.val());
+			uri.addQuery('shiptoID', input_shiptoID.val());
+			uri.addQuery('cell', input_cell.val());
+			url = uri.toString();
+		} else if (button.data('search') == 'ordered') {
+			url = '{{ page.orderedURL }}';
+		}
+
+		modal.find('.modal-title').text(button.attr('title'));
+		modal.resizeModal('xl');
+		modal.find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '.cstkitem-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var itemID = button.data('itemid');
+		var custitemID = button.data('custitemid');
+		input_itemID.val(itemID).change();
+		modal_ajax.modal('hide');
+	});
+
+	$("body").on('submit', '#ajax-modal form', function(e) {
+		e.preventDefault();
+		var form = $(this);
+		var query = form.serialize();
+		var action = form.attr('action');
+		var search = form.find('input[name=q]').val();
+		var url = action + '?' + query;
+		form.closest('.modal').find('.modal-title').text('Searching for ' + search);
+		form.closest('.modal').find('.modal-body').loadin(url, function() {});
+	});
+
+	$("body").on('click', '#ajax-modal .paginator-link', function(e) {
+		e.preventDefault();
+		var href = $(this).attr('href');
+		modal_ajax.find('.modal-body').load(href);
+	});
+
+/* =============================================================
+	AJAX Functions
+============================================================= */
+	/**
+	 * Returns if itemID is valid
+	 * @param  string      itemID   Item ID
+	 * @param  {Function} callback  Function to return to with bool value
+	 * @return function(bool)
+	 */
+	function is_valid_itemid(itemID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.validateURL }}');
+		uri.query('');
+		uri.addQuery('validate', 'itemid');
+		uri.addQuery('itemID', itemID);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			var valid = typeof response == 'boolean' && response === true;
+			callback(valid);
+		});
+	}
+
+	/**
+	 * Return if itemID is a valid customer item ID
+	 * @param  string     itemID   Item ID
+	 * @param  string     custID   Customer ID
+	 * @param  {Function} callback Function to return to with bool value
+	 * @return bool
+	 */
+	function is_valid_custitemid(itemID, custID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.validateURL }}');
+		uri.query('');
+		uri.addQuery('validate', 'custitemid');
+		uri.addQuery('itemID', itemID);
+		uri.addQuery('custID', custID);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			callback(response);
+		});
+	}
+
+	function is_already_ordered(custID, shiptoID, cell, itemID, callback) {
+		var uri = new URI();
+		uri.path('{{ page.validateURL }}');
+		uri.query('');
+		uri.addQuery('validate', 'order-exists');
+		uri.addQuery('custID', custID);
+		uri.addQuery('shiptoID', shiptoID);
+		uri.addQuery('cell', cell);
+		uri.addQuery('itemID', itemID);
+		$.getJSON(uri.toString(), function(response, fallback) {
+			var exists = typeof response == 'boolean' && response === true;
+			callback(exists);
+		});
+	}
+
+	/**
+	 * Return JSON object of Item
+	 * @param  string     itemID    Item ID
+	 * @param  string     custID    Customer ID
+	 * @param  string     shiptoID  Customer Ship-to ID
+	 * @param  string     cell      Cell Location
+	 * @param  {Function} callback  Function to call with json object
+	 * @return object
+	 */
+	function get_item(itemID, custID, shiptoID, cell, callback) {
+		var uri = new URI();
+		uri.path('{{ page.jsonURL }}');
+		uri.query('');
+		uri.addQuery('get', 'item');
+		uri.addQuery('itemID', itemID);
+		uri.addQuery('custID', custID);
+		uri.addQuery('shiptoID', shiptoID);
+		uri.addQuery('cell', cell);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			callback(response);
+		});
+	}
+
+	/**
+	 * Return JSON object of Item
+	 * @param  string     itemID    Item ID
+	 * @param  string     custID    Customer ID
+	 * @param  string     shiptoID  Customer Ship-to ID
+	 * @param  string     cell      Cell Location
+	 * @param  {Function} callback  Function to call with json object
+	 * @return object
+	 */
+	function get_order(itemID, custID, shiptoID, cell, callback) {
+		var uri = new URI();
+		uri.path('{{ page.jsonURL }}');
+		uri.query('');
+		uri.addQuery('get', 'order');
+		uri.addQuery('itemID', itemID);
+		uri.addQuery('custID', custID);
+		uri.addQuery('shiptoID', shiptoID);
+		uri.addQuery('cell', cell);
+
+		$.getJSON(uri.toString(), function(response, fallback) {
+			callback(response);
+		});
+	}
+
+	function verify_ordered(itemID) {
+		is_already_ordered(input_custID.val(), input_shiptoID.val(), input_cell.val(), itemID, function(exists) {
+			populate_item_fields(itemID);
+
+			if (exists) {
+				var key = itemID + ' at ' + input_custID.val() + '-' + input_shiptoID.val() + '-' + input_cell.val();
+				swal2.fire({
+					title: 'Item is already on order',
+					text: "Would you like to edit " + key + '?',
+					icon: 'warning',
+					showCancelButton: true,
+					confirmButtonText: 'Yes, Edit'
+				}).then((result) => {
+					if (result.value) {
+						get_order(itemID, input_custID.val(), input_shiptoID.val(), input_cell.val(), function(order) {
+							if (order) {
+								$('input[name=cases]').val(order.cases).change();
+								$('input[name=qty]').val(order.qty).change();
+							}
+						});
+					} else {
+						window.location.href = '{{ page.url }}';
+					}
+				})
+			}
+		});
+	}
+
+	/**
+	 * Fills in fields with Item JSON object data
+	 * @param  string itemID Item ID
+	 * @return void
+	 */
+	function populate_item_fields(itemID) {
+		get_item(itemID, input_custID.val(), input_shiptoID.val(), input_cell.val(), function(item) {
+			form.find('p#custitemID').text(item.custitemid);
+			form.find('p#caseqty').text(item.qtypercase);
+			form.find('.item-description').text(item.description);
+			form.find('.item-description2').text(item.description2);
+		});
+	}
+
+	function populate_order(itemID) {
+		get_order(itemID, input_custID.val(), input_shiptoID.val(), input_cell.val(), function(item) {
+			form.find('p#custitemID').text(item.custitemid);
+			form.find('p#caseqty').text(item.qtypercase);
+			form.find('.item-description').text(item.description);
+			form.find('.item-description2').text(item.description2);
+		});
+	}
+});

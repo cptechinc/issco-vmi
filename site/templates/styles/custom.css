@@ -1,0 +1,44 @@
+/*==============================================================
+	General Styles
+==============================================================*/
+.page {
+	width: 100%;
+}
+
+a.link {
+	text-decoration: none;
+	background-color: transparent;
+	border-bottom: 3px solid #bcdcef;
+	-webkit-transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	-o-transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	transition: background .15s cubic-bezier(0.33, 0.66, 0.66, 1);
+	-webkit-box-shadow: inset 0 -4px 0 #bcdcef;
+	box-shadow: inset 0 -4px 0 #bcdcef;
+}
+
+a.link:hover {
+	background-color: #bcdcef;
+}
+
+.toast.toast-alert {
+	max-width: 100%;
+}
+
+/*==============================================================
+	Form Styles
+==============================================================*/
+form label {
+	font-weight: bold;
+}
+
+/* Firefox */
+input.form-control[type=number] {
+	-moz-appearance: textfield;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}

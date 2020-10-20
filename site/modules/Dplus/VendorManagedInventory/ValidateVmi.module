@@ -1,0 +1,67 @@
+<?php namespace ProcessWire;
+
+use CustomerQuery, Customer;
+use CustomerShiptoQuery, CustomerShipto;
+use CustomerStockingCellQuery, CustomerStockingCell;
+use CstkHeadQuery, CstkHead;
+
+class ValidateVmi extends WireData implements Module {
+	/**
+	 * Return if Customer ID is valid
+	 * @param  string $custID Customer ID
+	 * @return bool
+	 */
+	public function custid($custID) {
+		return boolval(CustomerQuery::create()->filterByCustid($custID)->count());
+	}
+
+	/**
+	 * Return if Customer Ship-to ID is valid
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer Ship-to ID
+	 * @return bool
+	 */
+	public function shiptoid($custID, $shiptoID) {
+		return boolval(CustomerShiptoQuery::create()->filterByCustid($custID)->filterByShiptoid($shiptoID)->count());
+	}
+
+	/**
+	 * Returns if Customer Stocking Cell Exists
+	 * @param  string $id Cell Code
+	 * @return bool
+	 */
+	public function cell($id) {
+		return boolval(CustomerStockingCellQuery::create()->filterById($id)->count());
+	}
+
+	/**
+	 * Return if CSTK record exists
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer Ship-to ID
+	 * @param  string $cell     Cell Code
+	 * @return bool
+	 */
+	public function cstkcell($custID, $shiptoID, $cell) {
+		$q = CstkHeadQuery::create();
+		$q->filterByCustid($custID);
+		$q->filterByShiptoid($shiptoID);
+		$q->filterByCell($cell);
+		return boolval($q->count());
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Validate VMI',
+			'version' => 101,
+			'summary' => 'Provides Validation Functions for VMI',
+			'singular' => true,
+			'autoload' => true,
+			'installs' => array(
+
+			)
+		);
+	}
+}

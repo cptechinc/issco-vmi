@@ -1,0 +1,80 @@
+<?php namespace ProcessWire;
+
+use CustomerShiptoQuery, CustomerShipto;
+
+use Propel\Runtime\ActiveQuery\Criteria;
+
+class FilterCustomerShipto extends WireData implements Module {
+	/**
+	 * Returns Query
+	 * @return CustomerShipto
+	 */
+	public function get_query() {
+		return $this->query;
+	}
+
+	/**
+	 * Initializes Query
+	 * NOTE: Filters by Sales Rep if provided user is a Sales rep
+	 * @param  User   $user User to Check if they are a Sales Person
+	 * @return void
+	 */
+	public function init_query(User $user) {
+		$this->query = CustomerShiptoQuery::create();
+	}
+
+	/**
+	 * Filter Query by Cust ID
+	 * @param  string|array $custID Cust ID
+	 * @return void
+	 */
+	public function custid($custID) {
+		return $this->query->filterByCustid($custID);
+	}
+
+	/**
+	 * Searches the Customer Table to find vendors that match the query provided
+	 * @param  string $q Search Query
+	 * @return void
+	 */
+	public function search($q) {
+		$columns = array();
+		$columns[] = CustomerShipto::get_aliasproperty('shiptoid');
+		$columns[] = CustomerShipto::get_aliasproperty('name');
+		$columns[] = CustomerShipto::get_aliasproperty('address1');
+		$columns[] = CustomerShipto::get_aliasproperty('address2');
+		$columns[] = CustomerShipto::get_aliasproperty('city');
+		$columns[] = CustomerShipto::get_aliasproperty('state');
+		$columns[] = CustomerShipto::get_aliasproperty('zip');
+		$this->query->search_filter($columns, strtoupper($q));
+	}
+
+	/**
+	 * Adds the Sort By to the query
+	 *
+	 * @param  Page   $page
+	 * @return void
+	 */
+	public function sortby(Page $page) {
+		if ($page->has_orderby()) {
+			$orderbycolumn = $page->orderby_column;
+			$sort = $page->orderby_sort;
+
+			$tablecolumn = CustomerShipto::get_aliasproperty($orderbycolumn);
+			$this->query->sortBy($tablecolumn, $sort);
+		}
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Filter Customer Ship-to Module',
+			'version' => 101,
+			'summary' => 'Handles Customer Ship-to Filtering',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+}

@@ -1,0 +1,83 @@
+{% extends 'whse/vmi/_form.twig' %}
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	vmi                    module VendorManagedInventory
+	order                  VmiOrder
+#}
+{% block form %}
+	<form action="{{ page.url }}" method="get" id="vmi-form">
+		<input type="hidden" name="form" value="order">
+
+		<div class="row">
+			<div class="col-sm-8">
+				<div class="row">
+					<div class="col-sm-4">
+						<label for="custID">Customer ID</label>
+					</div>
+					<div class="col-sm-8">
+						{% include 'util/form/input-modal-lookup.twig' with {
+								'name': 'custID',
+								'value': order.custid,
+								'modaltarget': '#ajax-modal',
+								'modaldescription': 'Search for / Choose Customer',
+								'attributes_button': {'data-search': 'customer'},
+								'class_add': vmi.field_has_error_cstkcell('custID') ? 'is-invalid' : ''
+							}
+						%}
+						<p class="help-text customer-name"></p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-4">
+						<label for="shiptoID">Ship-to ID</label>
+					</div>
+					<div class="col-sm-8">
+						{% include 'util/form/input-modal-lookup.twig' with {
+								'name': 'shiptoID',
+								'value': order.shiptoid,
+								'modaltarget': '#ajax-modal',
+								'modaldescription': 'Search for / Choose Customer Ship-to',
+								'attributes_button': {'data-search': 'shipto'},
+								'class_add': vmi.field_has_error_cstkcell('shiptoID') ? 'is-invalid' : ''
+							}
+						%}
+						<p class="help-text shipto-name"></p>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-4">
+				<h4 class="customer-name"></h4>
+				<address class="customer-address collapse">
+					<span class="address"></span><br>
+					<span class="address2"></span>
+					<span class="city"></span>, <span class="state"></span> <span class="zip"></span>
+				</address>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-8">
+				<div class="row">
+					<div class="col-sm-4">
+						<label for="cell">Cell</label>
+					</div>
+					<div class="col-sm-8">
+						{% include 'util/form/input-modal-lookup.twig' with {
+								'name': 'cell',
+								'value': order.cell,
+								'modaltarget': '#ajax-modal',
+								'modaldescription': 'Search for / Choose Stocking Cell',
+								'attributes_button': {'data-search': 'cell'},
+								'class_add': vmi.field_has_error_cstkcell('cell') ? 'is-invalid' : ''
+							}
+						%}
+					</div>
+				</div>
+				<button type="submit" class="btn btn-success mt-3">
+					Enter Items
+				</button>
+			</div>
+		</div>
+	</form>
+{% endblock %}

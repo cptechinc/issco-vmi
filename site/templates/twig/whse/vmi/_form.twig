@@ -1,0 +1,29 @@
+{#
+	var                    Description / Instance of
+	-------------------------------------------------
+	page                   ProcessWire\Page
+	vmi                    module VendorManagedInventory
+	order                  VmiOrder
+#}
+<div class="card">
+	<div class="card-header">
+		<div class="d-flex justify-content-between align-items-center">
+			<h4>Vendor Managed Inventory</h4>
+			{% include 'util/button-modal.twig' with {
+					'modaltarget' : '#ajax-modal',
+					'modaldescription': 'Search Ordered Items',
+					'icon': 'fa fa-list',
+					'attributes_button': {'data-search': 'ordered'},
+					'buttontext': 'Ordered Items'
+				}
+			%}
+		</div>
+	</div>
+	<div class="card-body">
+		{% if page.has('alert') %}
+			{{ page.alert|raw }}
+		{% endif %}
+		{% block form %}
+		{% endblock %}
+	</div>
+</div>

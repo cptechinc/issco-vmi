@@ -1,0 +1,350 @@
+<?php namespace ProcessWire;
+
+use Purl\Url;
+
+use VmiOrderQuery, VmiOrder;
+
+require_once(__DIR__.'/VmiResponse.php');
+
+
+/**
+ * VendorManagedInventory
+ *
+ * Maintains VMI Orders
+ * @property string $sessionID SessionID
+ * @property User   $user      User
+ */
+class VendorManagedInventory extends WireData implements Module {
+	public function query() {
+		return VmiOrderQuery::create();
+	}
+/* =============================================================
+	CRUD Functions
+============================================================= */
+	/**
+	 * Create VmiOrder Object from Input Data
+	 * @param  WireInput $input Input Data
+	 * @return VmiOrder
+	 */
+	public function create_order_from_input(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		$order = new VmiOrder();
+		$order->setCustid($values->text('custID'));
+		$order->setShiptoid($values->text('shiptoID'));
+		$order->setCell($values->text('cell'));
+		$order->setItemid($values->text('itemID'));
+		$order->setCases($values->int('cases'));
+		$order->setQty($values->int('qty'));
+		$order->setSessionid($this->sessionID);
+		$order->setUserid($this->user->loginid);
+		return $order;
+	}
+
+	public function order_exists($custID, $shiptoID = '', $cell, $itemID) {
+		$q = $this->query();
+		$q->filterByCustid($custID);
+		$q->filterByShiptoid($shiptoID);
+		$q->filterByCell($cell);
+		$q->filterByItemid($itemID);
+		return boolval($q->count());
+	}
+
+	public function get_order($custID, $shiptoID = '', $cell, $itemID) {
+		$q = $this->query();
+		$q->filterByCustid($custID);
+		$q->filterByShiptoid($shiptoID);
+		$q->filterByCell($cell);
+		$q->filterByItemid($itemID);
+		return $q->findOne();
+	}
+
+/* =============================================================
+	CRUD Processing Functions
+============================================================= */
+	/**
+	 * Process Action and calls method to handle input action
+	 * @param  WireInput $input Input Data
+	 * @return void
+	 */
+	public function process_input(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+		$response = new VmiResponse();
+
+		switch ($values->action) {
+			case 'create-order':
+				$response = $this->process_input_create($input);
+				break;
+			default:
+				$order = $this->create_order_from_input($input);
+				$response = VmiResponse::response_error($order, 'No Action was supplied');
+				break;
+		}
+
+		// $db = $this->wire('modules')->get('DplusOnlineDatabase')->propelWriteConnection();
+		// $db->useDebug(true);
+		// echo $db->getLastExecutedQuery();
+		// exit;
+
+		$this->wire('session')->response_vmi = $response;
+	}
+
+	/**
+	 * Creates Vmi Order from Input Data
+	 * @param  WireInput $input Input Data
+	 * @return VmiResponse
+	 */
+	public function process_input_create(WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		if ($this->order_exists($values->text('custID'), $values->text('shiptoID'), $values->text('cell'), $values->text('itemID'))) {
+			$order = $this->get_order($values->text('custID'), $values->text('shiptoID'), $values->text('cell'), $values->text('itemID'));
+		} else {
+			$order = $this->create_order_from_input($input);
+			$this->set_custitemid($order);
+		}
+
+		$this->set_order_qty($order, $input);
+		$order->setDate(date(VmiOrder::FORMAT_DATE));
+		$order->setTime(date(VmiOrder::FORMAT_TIME));
+		$order->setUserid($this->user->loginid);
+		$invalidfields = $this->validate_order_fields($order);
+		return $this->save_and_respond($order, $invalidfields);
+	}
+
+	/**
+	 * Set Order Qty if cases is filled out
+	 * @param VmiOrder  $order Vmi Order
+	 * @param WireInput $input Input Data
+	 */
+	public function set_order_qty(VmiOrder $order, WireInput $input) {
+		$rm = strtolower($input->requestMethod());
+		$values = $input->$rm;
+
+		if (!$values->qty && $values->cases) {
+			$item = $this->get_itm_item($itemID);
+			$order->setQty($item->qtypercase * $values->int('cases'));
+		} else {
+			$order->setCases($values->int('cases'));
+			$order->setQty($values->int('qty'));
+		}
+	}
+
+	/**
+	 * Set Customer Item ID if available
+	 * @param VmiOrder $order
+	 */
+	public function set_custitemid(VmiOrder $order) {
+		$validate = $this->wire('modules')->get('ValidateItemVmi');
+
+		if ($validate->cstk($order->custid, $order->shiptoid, $order->cell, $order->itemid)) {
+			$order->setCustitemid($validate->custitemID);
+		}
+	}
+
+/* =============================================================
+	CRUD Response Functions
+============================================================= */
+	/**
+	 * Returns VmiResponse based on the outcome of the database save
+	 * @param  VmiOrder     $record        Record to record response of database save
+	 * @param  array        $invalidfields Input fields that require attention
+	 * @return VmiResponse
+	 */
+	public function save_and_respond(VmiOrder $record, array $invalidfields) {
+		$is_new = false;
+		$saved = false;
+
+		if (!$record->isDeleted()) {
+			$is_new = $record->isNew();
+			$saved = sizeof($invalidfields) == 0 ? $record->save() : false;
+		}
+
+		$response = new VmiResponse();
+		$response->set_order($record);
+		$response->set_fields($invalidfields);
+		$message = "VMI Order of $record->itemid for $record->custid-$record->shiptoid at $record->cell was ";
+
+		if ($saved) {
+			$response->set_success(true);
+		} else {
+			$response->set_error(true);
+			$message .= "not ";
+		}
+
+		if ($is_new) {
+			$message .= 'created';
+			$response->set_action(VmiResponse::CRUD_CREATE);
+		} elseif ($record->isDeleted()) {
+			$message .= 'deleted';
+			$response->set_action(VmiResponse::CRUD_DELETE);
+		} else {
+			$message .= 'updated';
+			$response->set_action(VmiResponse::CRUD_UPDATE);
+		}
+
+		$response->set_message($message);
+		return $response;
+	}
+
+
+/* =============================================================
+	Validation Functions
+============================================================= */
+	/**
+	 * Return Vmi Response validating Order Fields
+	 * @param  VmiOrder $order VmiOrder
+	 * @return VmiResponse
+	 */
+	public function get_validate_response(VmiOrder $order) {
+		$response = new VmiResponse();
+		$validate = $this->wire('modules')->get('ValidateVmi');
+		$errorfields = $this->validate_order_fields($order);
+		$response->set_fields($errorfields);
+
+		if ($errorfields) {
+			$response->set_error(true);
+		}
+
+		if ($response->has_error()) {
+			if (!$validate->cstkcell($order->custid, $order->shiptoid, $order->cell)) {
+				$msg = "$order->cell for $order->custid-$order->shiptoid not found in CSTK";
+			} else {
+				$msg = "VMI order cannot be started";
+			}
+		} else {
+			$response->set_success(true);
+			$msg = '';
+		}
+		$response->set_message($msg);
+		return $response;
+	}
+
+	/**
+	 * Return if field has an error
+	 * @param  string $field Field name
+	 * @return bool
+	 */
+	public function field_has_error_cstkcell($field) {
+		if ($this->wire('session')->response_validate) {
+			$response = $this->wire('session')->response_validate;
+			return $response->has_field($field);
+		}
+		return false;
+	}
+
+	/**
+	 * Validates CSTK Cell
+	 * @param  VmiOrder $order Vmi Order
+	 * @return bool
+	 */
+	public function validate_cstkcell(VmiOrder $order) {
+		$validate = $this->wire('modules')->get('ValidateVmi');
+		return $validate->cstkcell($order->custid, $order->shiptoid, $order->cell);
+	}
+
+	/**
+	 * Validates Order
+	 * @param  VmiOrder $order Vmi Order
+	 * @return array
+	 */
+	public function validate_order_fields(VmiOrder $order) {
+		$validate = $this->wire('modules')->get('ValidateVmi');
+		$errorfields = array();
+
+		if (!$validate->custid($order->custid)) {
+			$errorfields['custID'] = 'Customer ID';
+		}
+
+		if (!$validate->shiptoid($order->custid, $order->shiptoid)) {
+			$errorfields['shiptoID'] = 'Ship-to ID';
+		}
+
+		if (!$validate->cell($order->cell)) {
+			$errorfields['cell'] = 'Stocking Cell';
+		}
+
+		if (!$validate->cstkcell($order->custid, $order->shiptoid, $order->cell)) {
+			$errorfields['cstkcell'] = 'CSTK Stocking Cell';
+		}
+		return $errorfields;
+	}
+
+/* =============================================================
+	Supplemental Functions
+============================================================= */
+	/**
+	 * Return Item from Item Master
+	 * @param  string $itemID Item
+	 * @return ItemMasterItem
+	 */
+	public function get_itm_item($itemID) {
+		return ItemMasterItemQuery::create()->filterByItemid($itemID)->findOne();
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Vender Managed Inventory',
+			'version' => 101,
+			'summary' => 'Maintains VMI Orders',
+			'singular' => true,
+			'autoload' => true,
+			'installs' => array(
+
+			)
+		);
+	}
+
+	public function init() {
+		$this->sessionID = session_id();
+		$this->user = $this->wire('user');
+
+		$this->addHookProperty('Page::search_customersURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=lookup-customer')->url;
+		});
+		$this->addHookProperty('Page::search_shiptosURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=lookup-customer-shipto')->url;
+		});
+		$this->addHookProperty('Page::search_cellsURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=lookup-stocking-cells')->url;
+		});
+		$this->addHookProperty('Page::search_cstkitemsURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=lookup-cstk-items')->url;
+		});
+
+		$this->addHookProperty('Page::validateURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=whse-vmi-validate')->url;
+		});
+		$this->addHookProperty('Page::jsonURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=whse-vmi-json')->url;
+		});
+		$this->addHookProperty('Page::exit_orderingURL', function($event) {
+			$page = $event->object;
+			$url = new Url($page->url);
+
+			$query = $page->fullURL->query;
+			if ($query->has('custID')) {
+				$url->query->set('custID', $query->get('custID'));
+			}
+			$url->query->set('shiptoID', $query->has('custID') ?  $query->get('custID') : '');
+			$url->query->set('cell', $query->has('cell') ?  $query->get('cell') : '');
+			$event->return = $url->getUrl();
+		});
+		$this->addHookProperty('Page::orderedURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=whse-vmi-ordered')->url;
+		});
+	}
+}

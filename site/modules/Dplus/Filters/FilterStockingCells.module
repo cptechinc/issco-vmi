@@ -1,0 +1,66 @@
+<?php namespace ProcessWire;
+
+use CustomerStockingCellQuery, CustomerStockingCell;
+
+use Propel\Runtime\ActiveQuery\Criteria;
+
+class FilterStockingCells extends WireData implements Module {
+
+	/**
+	 * Returns Query
+	 * @return CustomerStockingCellQuery
+	 */
+	public function get_query() {
+		return $this->query;
+	}
+
+	/**
+	 * Initializes Query
+	 * @return void
+	 */
+	public function init_query() {
+		$this->query = CustomerStockingCellQuery::create();
+	}
+
+	/**
+	 * Searches the CustomerStockingCell Table to find vendors that match the query provided
+	 *
+	 * @param  string $q Search Query
+	 * @return void
+	 */
+	public function search($q) {
+		$columns = array();
+		$columns[] = CustomerStockingCell::get_aliasproperty('id');
+		$columns[] = CustomerStockingCell::get_aliasproperty('description');
+		$this->query->search_filter($columns, strtoupper($q));
+	}
+
+	/**
+	 * Adds the Sort By to the query
+	 *
+	 * @param  Page   $page
+	 * @return void
+	 */
+	public function sortby(Page $page) {
+		if ($page->has_orderby()) {
+			$orderbycolumn = $page->orderby_column;
+			$sort = $page->orderby_sort;
+
+			$tablecolumn = CustomerStockingCell::get_aliasproperty($orderbycolumn);
+			$this->query->sortBy($tablecolumn, $sort);
+		}
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Filter CustomerStockingCell Module',
+			'version' => 101,
+			'summary' => 'Handles CustomerStockingCell Filtering',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+}
