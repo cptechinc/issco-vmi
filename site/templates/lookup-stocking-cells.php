@@ -9,9 +9,18 @@
 		$page->headline = "Searching for '$q'";
 	}
 
+	if ($input->get->func) {
+		if ($input->get->text('func') == 'vmi') {
+			$vmi = $modules->get('VendorManagedInventory');
+			$filter->cell($vmi->cstk_cells());
+		}
+	}
+
 	$filter->sortby($page);
 	$query = $filter->get_query();
 	$cells = $query->paginate($input->pageNum, 10);
+
+	echo $db_dplusdata->getLastExecutedQuery();
 
 	$page->searchURL = $page->url;
 	$page->body = $config->twig->render('api/lookup/stocking-cells/search.twig', ['page' => $page, 'cells' => $cells, 'datamatcher' => $modules->get('RegexMatcher'), 'q' => $q]);

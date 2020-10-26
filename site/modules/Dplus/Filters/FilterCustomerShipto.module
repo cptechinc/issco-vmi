@@ -33,6 +33,15 @@ class FilterCustomerShipto extends WireData implements Module {
 	}
 
 	/**
+	 * Filter Query by Cust ID
+	 * @param  string|array $custID Cust ID
+	 * @return void
+	 */
+	public function shiptoid($shiptoID) {
+		return $this->query->filterByShiptoid($shiptoID);
+	}
+
+	/**
 	 * Searches the Customer Table to find vendors that match the query provided
 	 * @param  string $q Search Query
 	 * @return void

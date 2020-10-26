@@ -9,6 +9,13 @@
 		$page->headline = "Searching for '$q'";
 	}
 
+	if ($input->get->func) {
+		if ($input->get->text('func') == 'vmi') {
+			$vmi = $modules->get('VendorManagedInventory');
+			$filter->custid($vmi->cstk_custids());
+		}
+	}
+
 	$filter->sortby($page);
 	$query = $filter->get_query();
 	$customers = $query->paginate($input->pageNum, 10);

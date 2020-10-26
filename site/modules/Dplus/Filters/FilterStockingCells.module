@@ -23,6 +23,15 @@ class FilterStockingCells extends WireData implements Module {
 	}
 
 	/**
+	 * Filter Query by Cell
+	 * @param  string|array $cell Cell Code
+	 * @return void
+	 */
+	public function cell($cell) {
+		$this->query->filterByCode($cell);
+	}
+
+	/**
 	 * Searches the CustomerStockingCell Table to find vendors that match the query provided
 	 *
 	 * @param  string $q Search Query

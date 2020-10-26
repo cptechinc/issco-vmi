@@ -13,6 +13,13 @@
 		$page->headline = "Searching for '$q'";
 	}
 
+	if ($input->get->func) {
+		if ($input->get->text('func') == 'vmi') {
+			$vmi = $modules->get('VendorManagedInventory');
+			$filter->shiptoid($vmi->cstk_shiptoids($custID));
+		}
+	}
+
 	$filter->sortby($page);
 	$query = $filter->get_query();
 	$shiptos = $query->paginate($input->pageNum, 10);
