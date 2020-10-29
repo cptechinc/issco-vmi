@@ -2,20 +2,17 @@
 	if ($input->get->custID && $input->get->cell) {
 		$filter = $modules->get('FilterItemsCstk');
 		$filter->init_query($user);
-
 		$q = $input->get->text('q');
-		$cell = new ProcessWire\WireData();
 
 		$filter->cstkcell($input->get->text('custID'), $input->get->text('shiptoID'), $input->get->text('cell'));
+		$page->custID = $input->get->text('custID');
+		$page->shiptoID = $input->get->text('shiptoID');
+		$page->cell = $input->get->text('cell');
 
 		if ($input->get->q) {
 			$filter->search($q);
 			$page->headline = "Searching for '$q'";
 		}
-
-		$cell->custid   = $input->get->custID ? $input->get->text('custID') : '';
-		$cell->shiptoid = $input->get->shiptoID ? $input->get->text('shiptoID') : '';
-		$cell->cell     = $input->get->cell ? $input->get->text('cell') : '';
 
 		$filter->sortby($page);
 		$query = $filter->get_query();
