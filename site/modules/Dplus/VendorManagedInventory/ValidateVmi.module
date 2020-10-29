@@ -41,10 +41,14 @@ class ValidateVmi extends WireData implements Module {
 	 * @param  string $cell     Cell Code
 	 * @return bool
 	 */
-	public function cstkcell($custID, $shiptoID, $cell) {
+	public function cstkcell($custID = '', $shiptoID = '', $cell) {
 		$q = CstkHeadQuery::create();
-		$q->filterByCustid($custID);
-		$q->filterByShiptoid($shiptoID);
+		if ($custID) {
+			$q->filterByCustid($custID);
+		}
+		if ($shiptoID) {
+			$q->filterByShiptoid($shiptoID);
+		}
 		$q->filterByCell($cell);
 		return boolval($q->count());
 	}

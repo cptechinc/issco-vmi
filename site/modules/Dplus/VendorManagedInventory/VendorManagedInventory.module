@@ -264,7 +264,7 @@ class VendorManagedInventory extends WireData implements Module {
 			$errorfields['shiptoID'] = 'Ship-to ID';
 		}
 
-		if (!$validate->cell($order->cell)) {
+		if (!$validate->cstkcell('', '', $order->cell)) {
 			$errorfields['cell'] = 'Stocking Cell';
 		}
 
