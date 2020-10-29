@@ -114,7 +114,7 @@ class DplusUser extends WireData implements Module {
 	public function setup_user(User $user, $sessionID) {
 		if ($user->isLoggedInDplus($sessionID)) {
 			$this->setup_user_logperm($user, $sessionID);
-			$this->setup_user_logm($user);
+			//$this->setup_user_logm($user);
 		}
 	}
 
