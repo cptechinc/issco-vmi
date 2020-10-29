@@ -1,4 +1,7 @@
 <form action="{{ page.url }}" method="get" class="allow-enterkey-submit" id="cstkitem-search-form">
+	<input type="hidden" name="custID" value="{{ page.custID }}">
+	<input type="hidden" name="shiptoID" value="{{ page.shiptoID }}">
+	<input type="hidden" name="cell" value="{{ page.cell }}">
 	<div class="input-group form-group">
 		<input class="form-control form-group" type="text" name="q" value="{{ q }}" placeholder="Search item ID, Customer X-ref">
 		<span class="input-group-btn">
