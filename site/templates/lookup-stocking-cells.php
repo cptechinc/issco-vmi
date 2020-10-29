@@ -1,5 +1,5 @@
 <?php
-	$filter = $modules->get('FilterStockingCells');
+	$filter = $modules->get('FilterCstk');
 	$filter->init_query($user);
 
 	$q = $input->get->text('q');
@@ -19,8 +19,6 @@
 	$filter->sortby($page);
 	$query = $filter->get_query();
 	$cells = $query->paginate($input->pageNum, 10);
-
-	echo $db_dplusdata->getLastExecutedQuery();
 
 	$page->searchURL = $page->url;
 	$page->body = $config->twig->render('api/lookup/stocking-cells/search.twig', ['page' => $page, 'cells' => $cells, 'datamatcher' => $modules->get('RegexMatcher'), 'q' => $q]);

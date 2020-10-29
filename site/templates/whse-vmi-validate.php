@@ -34,10 +34,10 @@
 			case 'cell':
 				$cell = $values->text('cell');
 
-				if ($validate->cell($cell)) {
+				if ($validate->cstkcell('', '', $cell)) {
 					$response = true;
 				} else {
-					$response = "Stocking Cell $cell was not found in the INV Stocking Cell Master";
+					$response = "Stocking Cell $cell was not found in CSTK";
 				}
 				break;
 			case 'cstkcell':

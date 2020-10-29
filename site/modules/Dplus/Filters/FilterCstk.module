@@ -1,0 +1,75 @@
+<?php namespace ProcessWire;
+
+use CstkHeadQuery, CstkHead;
+
+use Propel\Runtime\ActiveQuery\Criteria;
+
+class FilterCstk extends WireData implements Module {
+
+	/**
+	 * Returns Query
+	 * @return CstkHeadQuery
+	 */
+	public function get_query() {
+		return $this->query;
+	}
+
+	/**
+	 * Initializes Query
+	 * @return void
+	 */
+	public function init_query() {
+		$this->query = CstkHeadQuery::create();
+	}
+
+	/**
+	 * Filter Query by Cell
+	 * @param  string|array $cell Cell Code
+	 * @return void
+	 */
+	public function cell($cell) {
+		$this->query->filterByCell($cell);
+	}
+
+	/**
+	 * Searches the CstkHead Table to find vendors that match the query provided
+	 *
+	 * @param  string $q Search Query
+	 * @return void
+	 */
+	public function search($q) {
+		$columns = array();
+		$columns[] = CstkHead::get_aliasproperty('id');
+		$columns[] = CstkHead::get_aliasproperty('description');
+		$this->query->search_filter($columns, strtoupper($q));
+	}
+
+	/**
+	 * Adds the Sort By to the query
+	 *
+	 * @param  Page   $page
+	 * @return void
+	 */
+	public function sortby(Page $page) {
+		if ($page->has_orderby()) {
+			$orderbycolumn = $page->orderby_column;
+			$sort = $page->orderby_sort;
+
+			$tablecolumn = CstkHead::get_aliasproperty($orderbycolumn);
+			$this->query->sortBy($tablecolumn, $sort);
+		}
+	}
+
+/* =============================================================
+	ProcessWire Module Functions
+============================================================= */
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Dplus Filter CstkHead Module',
+			'version' => 101,
+			'summary' => 'Handles CstkHead Filtering',
+			'singular' => true,
+			'autoload' => true,
+		);
+	}
+}

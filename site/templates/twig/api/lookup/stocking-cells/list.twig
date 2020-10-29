@@ -12,9 +12,6 @@
 			<th scope="col">
 				<a href="{{ page.get_sortURL('id') }}" class="link">Code</a>
 			</th>
-			<th scope="col">
-				<a href="{{ page.get_sortURL('description') }}" class="link">Description</a>
-			</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -22,12 +19,9 @@
 			{% for cell in cells %}
 				<tr>
 					<td scope="row">
-						<a href="#" class="link cell-link" data-id="{{ cell.id }}" data-description="{{ cell.description }}">
-							<strong>{{ cell.id }}</strong>
+						<a href="#" class="link cell-link" data-id="{{ cell.cell }}">
+							<strong>{{ cell.cell }}</strong>
 						</a>
-					</td>
-					<td class="{{ datamatcher.string(cell.description, q) ? 'highlight' : '' }}">
-						{{ cell.description }}
 					</td>
 				</tr>
 			{% endfor %}
