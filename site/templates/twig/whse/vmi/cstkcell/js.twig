@@ -60,6 +60,8 @@ $(function() {
 			url = '{{ page.search_cellsURL }}';
 		} else if (button.data('search') == 'ordered') {
 			url = '{{ page.orderedURL }}';
+		} else if (button.data('search') == 'cstk') {
+			url = '{{ page.search_cstkURL }}';
 		}
 		uri = new URI(url);
 		uri.addQuery('func', 'vmi');
@@ -103,6 +105,18 @@ $(function() {
 		var id = button.data('id');
 		var description = button.data('description');
 		input_cell.val(id);
+		modal_ajax.modal('hide');
+	});
+
+	$("body").on('click', '.cstk-link', function(e) {
+		e.preventDefault();
+		var button = $(this);
+		var custID = button.data('custid');
+		var shiptoID = button.data('shiptoid');
+		var cell = button.data('cell');
+		input_custID.val(custID);
+		input_shiptoID.val(shiptoID);
+		input_cell.val(cell);
 		modal_ajax.modal('hide');
 	});
 

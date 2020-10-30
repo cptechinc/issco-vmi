@@ -22,7 +22,7 @@
 								'value': order.custid,
 								'modaltarget': '#ajax-modal',
 								'modaldescription': 'Search for / Choose Customer',
-								'attributes_button': {'data-search': 'customer'},
+								'attributes_button': {'data-search': 'cstk'},
 								'class_add': vmi.field_has_error_cstkcell('custID') ? 'is-invalid' : ''
 							}
 						%}
@@ -39,7 +39,7 @@
 								'value': order.shiptoid,
 								'modaltarget': '#ajax-modal',
 								'modaldescription': 'Search for / Choose Customer Ship-to',
-								'attributes_button': {'data-search': 'shipto'},
+								'attributes_button': {'data-search': 'cstk'},
 								'class_add': vmi.field_has_error_cstkcell('shiptoID') ? 'is-invalid' : ''
 							}
 						%}
@@ -68,7 +68,7 @@
 								'value': order.cell,
 								'modaltarget': '#ajax-modal',
 								'modaldescription': 'Search for / Choose Stocking Cell',
-								'attributes_button': {'data-search': 'cell'},
+								'attributes_button': {'data-search': 'cstk'},
 								'class_add': vmi.field_has_error_cstkcell('cell') ? 'is-invalid' : ''
 							}
 						%}
