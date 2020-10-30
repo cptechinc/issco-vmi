@@ -91,6 +91,15 @@ class DpagesApi extends Dpages implements Module {
 			'parent'         => '/api/lookup/',
 			'dplus_function' => '',
 			'pw_template'    => 'lookup-cstk-items'
+		),
+		'lookup-cstk' => array(
+			'template'       => 'api-ajax',
+			'name'           => 'cstk',
+			'title'          => 'Lookup CSTK',
+			'summary'        => 'Lookup CSTK',
+			'parent'         => '/api/lookup/',
+			'dplus_function' => '',
+			'pw_template'    => 'lookup-cstk'
 		)
 	);
 
