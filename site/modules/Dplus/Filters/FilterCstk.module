@@ -39,8 +39,9 @@ class FilterCstk extends WireData implements Module {
 	 */
 	public function search($q) {
 		$columns = array();
-		$columns[] = CstkHead::get_aliasproperty('id');
-		$columns[] = CstkHead::get_aliasproperty('description');
+		$columns[] = CstkHead::get_aliasproperty('custid');
+		$columns[] = CstkHead::get_aliasproperty('shiptoid');
+		$columns[] = CstkHead::get_aliasproperty('cell');
 		$this->query->search_filter($columns, strtoupper($q));
 	}
 
