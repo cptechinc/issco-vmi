@@ -355,6 +355,10 @@ class VendorManagedInventory extends WireData implements Module {
 			$page = $event->object;
 			$event->return = $this->wire('pages')->get('pw_template=lookup-cstk-items')->url;
 		});
+		$this->addHookProperty('Page::search_cstkURL', function($event) {
+			$page = $event->object;
+			$event->return = $this->wire('pages')->get('pw_template=lookup-cstk')->url;
+		});
 
 		$this->addHookProperty('Page::validateURL', function($event) {
 			$page = $event->object;
