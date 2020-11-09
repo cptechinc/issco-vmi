@@ -47,6 +47,7 @@
 				break;
 			case 'item':
 				$validate = $modules->get('ValidateItemVmi');
+				$vmi = $modules->get('VendorManagedInventory');
 				$custID = $values->text('custID');
 				$shiptoID = $values->text('shiptoID');
 				$cell = $values->text('cell');
@@ -54,11 +55,12 @@
 
 				if ($validate->cstk($custID, $shiptoID, $cell, $itemID)) {
 					$item = ItemMasterItemQuery::create()->filterByItemid($validate->itemID)->findOne();
+					$cstkitem = $vmi->get_cstkitem($custID, $shiptoID, $cell, $itemID);
 					$response = array(
 						'itemid'       => $item->itemid,
 						'description'  => $item->description,
 						'description2' => $item->description2,
-						'qtypercase'   => $item->qtypercase,
+						'qtypercase'   => $cstkitem->orderqty,
 						'custitemid'   => $validate->custitemID
 					);
 				} else {

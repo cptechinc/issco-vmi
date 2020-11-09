@@ -5,8 +5,10 @@ use Purl\Url;
 use VmiOrderQuery, VmiOrder;
 
 use CstkHeadQuery, CstkHead;
+use CstkItemQuery, CstkItem;
 use CustomerQuery, Customer;
 use CustomerShiptoQuery, CustomerShipto;
+use ItemMasterItemQuery, temMasterItem;
 
 require_once(__DIR__.'/VmiResponse.php');
 
@@ -46,6 +48,14 @@ class VendorManagedInventory extends WireData implements Module {
 		return $order;
 	}
 
+	/**
+	 * Validates if CSTK Item is Already Ordered
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer Ship-to ID
+	 * @param  string $cell     CSTK Cell
+	 * @param  string $itemID   Item ID
+	 * @return bool
+	 */
 	public function order_exists($custID, $shiptoID = '', $cell, $itemID) {
 		$q = $this->query();
 		$q->filterByCustid($custID);
@@ -55,6 +65,14 @@ class VendorManagedInventory extends WireData implements Module {
 		return boolval($q->count());
 	}
 
+	/**
+	 * Return VmiOrder
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer Ship-to ID
+	 * @param  string $cell     CSTK Cell
+	 * @param  string $itemID   Item ID
+	 * @return VmiOrder
+	 */
 	public function get_order($custID, $shiptoID = '', $cell, $itemID) {
 		$q = $this->query();
 		$q->filterByCustid($custID);
@@ -86,12 +104,6 @@ class VendorManagedInventory extends WireData implements Module {
 				$response = VmiResponse::response_error($order, 'No Action was supplied');
 				break;
 		}
-
-		// $db = $this->wire('modules')->get('DplusOnlineDatabase')->propelWriteConnection();
-		// $db->useDebug(true);
-		// echo $db->getLastExecutedQuery();
-		// exit;
-
 		$this->wire('session')->response_vmi = $response;
 	}
 
@@ -129,8 +141,8 @@ class VendorManagedInventory extends WireData implements Module {
 		$values = $input->$rm;
 
 		if (!$values->qty && $values->cases) {
-			$item = $this->get_itm_item($itemID);
-			$order->setQty($item->qtypercase * $values->int('cases'));
+			$cstkitem = $this->get_cstkitem($values->text('custID'), $values->text('shiptoID'), $values->text('cell'), $values->text('itemID'));
+			$order->setQty($cstkitem->orderqty * $values->int('cases'));
 		} else {
 			$order->setCases($values->int('cases'));
 			$order->setQty($values->int('qty'));
@@ -322,12 +334,39 @@ class VendorManagedInventory extends WireData implements Module {
 		return $q->find()->toArray();
 	}
 
+	/**
+	 * Return Customer
+	 * @param  string $custID Customer ID
+	 * @return Customer
+	 */
 	public function get_customer($custID) {
 		return CustomerQuery::create()->findOneByCustid($custID);
 	}
 
+	/**
+	 * Return Customer Ship-to
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer Ship-to ID
+	 * @return CustomerShipto
+	 */
 	public function get_customer_shipto($custID, $shiptoID) {
 		return CustomerShiptoQuery::create()->filterByCustid($custID)->findOneByShiptoid($shiptoID);
+	}
+
+	/**
+	 * Return CSTK Item
+	 * @param  string $custID   Customer ID
+	 * @param  string $shiptoID Customer Ship-to ID
+	 * @param  string $cell     CSTK Cell
+	 * @param  string $itemID   Item ID
+	 * @return CstkItem
+	 */
+	public function get_cstkitem($custID, $shiptoID, $cell, $itemID) {
+		$q = CstkItemQuery::create();
+		$q->filterByCustid($custID)->filterByShiptoid($shiptoID);
+		$q->filterByCell($cell);
+		$q->filterByItemid($itemID);
+		return $q->findOne();
 	}
 
 /* =============================================================

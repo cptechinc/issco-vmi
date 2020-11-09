@@ -1,5 +1,5 @@
 <?php
-	if ($input->get->custID && $input->get->cell) {
+	if ($input->get->custID) {
 		$filter = $modules->get('FilterItemsCstk');
 		$filter->init_query($user);
 		$q = $input->get->text('q');
