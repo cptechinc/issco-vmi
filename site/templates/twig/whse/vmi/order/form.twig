@@ -7,6 +7,11 @@
 	order                  VmiOrder
 #}
 {% block form %}
+	<div class="form-group">
+		<a href="{{ page.exit_orderingURL }}" class="btn btn-warning">
+			<i class="fa fa-undo" aria-hidden="true"></i> Back
+		</a>
+	</div>
 	<form action="{{ page.fullURL.getUrl() }}" method="post" id="vmi-form">
 		<input type="hidden" name="form" value="order">
 		<input type="hidden" name="action" value="create-order">
