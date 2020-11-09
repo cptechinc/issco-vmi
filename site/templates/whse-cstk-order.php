@@ -24,6 +24,10 @@
 		$page->js   .= $config->twig->render('whse/vmi/cstkcell/js.twig', ['page' => $page, 'vmi' => $vmi]);
 	}
 
+	if ($session->response_vmi) {
+		$session->remove('response_vmi');
+	}
+
 
 	if ($config->ajax) {
 		echo $page->body;
