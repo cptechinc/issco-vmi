@@ -52,6 +52,7 @@ class DplusUser extends WireData implements Module {
 				if ($this->is_logged_in_whse(session_id())) {
 					$this->request_logout_whse();
 				}
+				sleep(1);
 				break;
 			case 'login-whse':
 				$this->request_login_whse($values->text('username'));
