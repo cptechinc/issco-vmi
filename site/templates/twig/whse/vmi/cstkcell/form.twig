@@ -6,6 +6,8 @@
 	vmi                    module VendorManagedInventory
 	order                  VmiOrder
 #}
+{% set customer = vmi.get_customer(order.custid) %}
+{% set shipto = vmi.get_customer_shipto(order.custid, order.shiptoid) %}
 {% block form %}
 	<form action="{{ page.url }}" method="get" id="vmi-form">
 		<input type="hidden" name="form" value="order">
@@ -26,7 +28,7 @@
 								'class_add': vmi.field_has_error_cstkcell('custID') ? 'is-invalid' : ''
 							}
 						%}
-						<p class="help-text customer-name"></p>
+						<p class="help-text customer-name">{{ customer.name }}</p>
 					</div>
 				</div>
 				<div class="row">
@@ -43,16 +45,16 @@
 								'class_add': vmi.field_has_error_cstkcell('shiptoID') ? 'is-invalid' : ''
 							}
 						%}
-						<p class="help-text shipto-name"></p>
+						<p class="help-text shipto-name">{{ shipto.name }}</p>
 					</div>
 				</div>
 			</div>
 			<div class="col-sm-4">
-				<h4 class="customer-name"></h4>
-				<address class="customer-address collapse">
-					<span class="address"></span><br>
-					<span class="address2"></span>
-					<span class="city"></span>, <span class="state"></span> <span class="zip"></span>
+				<h4 class="customer-name">{{ customer.name }}</h4>
+				<address class="customer-address {{ shipto ? '' : 'collapse'}}">
+					<span class="address">{{ shipto.address }}</span><br>
+					<span class="address2">{{ shipto.address2 }}</span>
+					<span class="city">{{ shipto.city }}</span>, <span class="state">{{ shipto.state }}</span> <span class="zip">{{ shipto.zip }}</span>
 				</address>
 			</div>
 		</div>
@@ -74,9 +76,14 @@
 						%}
 					</div>
 				</div>
-				<button type="submit" class="btn btn-success mt-3">
-					Enter Items
-				</button>
+				<div class="d-flex justify-content-between align-items-center">
+					<button type="submit" class="btn btn-success mt-3">
+						<i class="fa fa-keyboard-o" aria-hidden="true"></i> Enter Items
+					</button>
+					<a href="{{ page.url }}" class="btn btn-warning">
+						<i class="fa fa-eraser" aria-hidden="true"></i> Clear All
+					</a>
+				</div>
 			</div>
 		</div>
 	</form>

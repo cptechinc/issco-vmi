@@ -3,7 +3,10 @@
 use Purl\Url;
 
 use VmiOrderQuery, VmiOrder;
+
 use CstkHeadQuery, CstkHead;
+use CustomerQuery, Customer;
+use CustomerShiptoQuery, CustomerShipto;
 
 require_once(__DIR__.'/VmiResponse.php');
 
@@ -319,6 +322,14 @@ class VendorManagedInventory extends WireData implements Module {
 		return $q->find()->toArray();
 	}
 
+	public function get_customer($custID) {
+		return CustomerQuery::create()->findOneByCustid($custID);
+	}
+
+	public function get_customer_shipto($custID, $shiptoID) {
+		return CustomerShiptoQuery::create()->filterByCustid($custID)->findOneByShiptoid($shiptoID);
+	}
+
 /* =============================================================
 	ProcessWire Module Functions
 ============================================================= */
@@ -376,7 +387,7 @@ class VendorManagedInventory extends WireData implements Module {
 			if ($query->has('custID')) {
 				$url->query->set('custID', $query->get('custID'));
 			}
-			$url->query->set('shiptoID', $query->has('custID') ?  $query->get('custID') : '');
+			$url->query->set('shiptoID', $query->has('shiptoID') ?  $query->get('shiptoID') : '');
 			$url->query->set('cell', $query->has('cell') ?  $query->get('cell') : '');
 			$event->return = $url->getUrl();
 		});
