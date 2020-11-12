@@ -19,50 +19,50 @@
 		<input type="hidden" name="shiptoID" value="{{ order.shiptoid }}">
 		<input type="hidden" name="cell" value="{{ order.cell }}">
 		<div class="row form-group">
-			<div class="col-sm-4">
-				<label for="">For</label>
+			<div class="col-sm-4 mb-0">
+				<label for="" class="mb-0">For</label>
 			</div>
 			<div class="col-sm-8">
 				{{ order.custid }}-{{ order.shiptoid }}-{{ order.cell }}
 			</div>
 		</div>
 		<div class="row form-group">
-			<div class="col-sm-4">
-				<label for="itemID">Item ID</label>
+			<div class="col-sm-4 mb-0">
+				<label class="mb-0" for="itemID">Item ID</label>
 			</div>
 			<div class="col-sm-8">
 				{% include 'util/form/input-modal-lookup.twig' with {'name': 'itemID', 'value': '', 'modaltarget': '#ajax-modal', 'modaldescription': 'Search for / Choose Item', 'attributes_button': {'data-search': 'cstkitem'}} %}
-				<p class="help-text item-description"></p>
-				<p class="help-text item-description2"></p>
+				<p class="help-text item-description mt-1 mb-0"></p>
+				<p class="help-text item-description2 mb-0"></p>
 			</div>
 		</div>
 		<div class="row form-group">
-			<div class="col-sm-4">
-				<label for="custitemID">Customer Item</label>
+			<div class="col-sm-4 mb-0">
+				<label class="mb-0" for="custitemID">Customer Item</label>
 			</div>
 			<div class="col-sm-8">
-				<p class="form-control-plaintext form-control-sm" id="custitemID"></p>
+				<p class="form-control-plaintext form-control-sm mb-0" id="custitemID"></p>
 			</div>
 		</div>
 		<div class="row form-group">
-			<div class="col-sm-4">
-				<label for="caseqty">Case Qty</label>
+			<div class="col-sm-4 mb-0">
+				<label class="mb-0" for="caseqty">Case Qty</label>
 			</div>
 			<div class="col-sm-8">
 				<p class="form-control-plaintext form-control-sm" id="caseqty"></p>
 			</div>
 		</div>
 		<div class="row form-group">
-			<div class="col-sm-4">
-				<label for="cases">Cases</label>
+			<div class="col-sm-4 mb-0">
+				<label class="mb-0" for="cases">Cases</label>
 			</div>
 			<div class="col-sm-8">
 				<input type="number" class="form-control form-control-sm w-50 text-right" name="cases" id="cases" value="0">
 			</div>
 		</div>
 		<div class="row form-group">
-			<div class="col-sm-4">
-				<label for="qty">Quantity</label>
+			<div class="col-sm-4 mb-0">
+				<label class="mb-0" for="qty">Quantity</label>
 			</div>
 			<div class="col-sm-8">
 				<input type="number" class="form-control form-control-sm w-50 text-right" name="qty" min="1" id="qty" value="0">
