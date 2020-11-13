@@ -84,7 +84,11 @@ $(function() {
 			uri.addQuery('cell', input_cell.val());
 			url = uri.toString();
 		} else if (button.data('search') == 'ordered') {
-			url = '{{ page.orderedURL }}';
+			uri = new URI('{{ page.orderedURL }}');
+			uri.addQuery('custID', input_custID.val());
+			uri.addQuery('shiptoID', input_shiptoID.val());
+			uri.addQuery('cell', input_cell.val());
+			url = uri.toString();
 		}
 
 		modal.find('.modal-title').text(button.attr('title'));

@@ -9,28 +9,28 @@
 <table id="ordered-index" class="table table-bordered">
 	<thead>
 		<tr>
-			<th scope="col">
+			<th>
 				<a href="{{ page.get_sortURL('custid') }}" class="link">Customer ID</a>
 			</th>
-			<th scope="col">
+			<th>
 				<a href="{{ page.get_sortURL('shiptoid') }}" class="link">Ship-to ID</a>
 			</th>
-			<th scope="col">
+			<th>
 				<a href="{{ page.get_sortURL('cell') }}" class="link">Cell</a>
 			</th>
-			<th scope="col">
+			<th>
 				<a href="{{ page.get_sortURL('itemid') }}" class="link">Item ID</a>
 			</th>
-			<th scope="col">
+			<th>
 				<a href="{{ page.get_sortURL('custitemid') }}" class="link">Customer Item ID</a>
 			</th>
-			<th scope="col">
+			<th class="text-right">
 				Cases
 			</th>
-			<th scope="col">
+			<th class="text-right">
 				Qty
 			</th>
-			<th scope="col">
+			<th>
 				<a href="{{ page.get_sortURL('datetime') }}" class="link">Date</a>
 			</th>
 		</tr>
@@ -54,10 +54,10 @@
 					<td class="{{ datamatcher.string(item.custitemid, q) ? 'highlight' : '' }}">
 						{{ item.custitemid }}
 					</td>
-					<td class="{{ datamatcher.string(item.cases, q) ? 'highlight' : '' }}">
+					<td class="text-right {{ datamatcher.string(item.cases, q) ? 'highlight' : '' }}">
 						{{ item.cases }}
 					</td>
-					<td class="{{ datamatcher.string(item.qty, q) ? 'highlight' : '' }}">
+					<td class="text-right {{ datamatcher.string(item.qty, q) ? 'highlight' : '' }}">
 						{{ item.qty }}
 					</td>
 					<td>
