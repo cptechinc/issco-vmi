@@ -31,7 +31,7 @@
 				<label class="mb-0" for="itemID">Item ID</label>
 			</div>
 			<div class="col-sm-8">
-				{% include 'util/form/input-modal-lookup.twig' with {'name': 'itemID', 'value': '', 'modaltarget': '#ajax-modal', 'modaldescription': 'Search for / Choose Item', 'attributes_button': {'data-search': 'cstkitem'}} %}
+				{% include 'util/form/input-modal-lookup.twig' with {'name': 'itemID', 'value': '', 'autofocus': true, 'modaltarget': '#ajax-modal', 'modaldescription': 'Search for / Choose Item', 'attributes_button': {'data-search': 'cstkitem'}} %}
 				<p class="help-text item-description mt-1 mb-0"></p>
 				<p class="help-text item-description2 mb-0"></p>
 			</div>

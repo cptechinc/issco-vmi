@@ -68,7 +68,7 @@ class ValidateItemVmi extends ValidateItem implements Module {
 	 */
 	public function cstk_custitemid($custID, $shiptoID, $cell, $itemID) {
 		$q = $this->query_cstk($custID, $shiptoID, $cell);
-		$q->filterByCustItemid($itemID);
+		$q->filterByCustitemid($itemID);
 
 		if ($q->count()) {
 			$cstkitem = $q->findOne();

@@ -1,3 +1,13 @@
+$(function() {
+	$("body").on('keypress', 'form input', function(e) {
+		if ($(this).closest('form').hasClass('allow-enterkey-submit')) {
+			return true;
+		} else {
+			return e.which !== 13;
+		}
+	});
+});
+
 $.fn.extend({
 	loadin: function(href, callback) {
 		var parent = $(this);
